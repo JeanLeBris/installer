@@ -3,6 +3,8 @@ import requests
 import json
 import os
 import base64
+import shutil
+import stat
 
 with open(".access_key", "r") as f:
     key = f.read()
@@ -118,11 +120,11 @@ def print_repo_file_tree(repo_file_tree, level=0, save=False, update=False):
                 name = repo_file_tree[i]["name"]
                 if repo_file_tree[i]["type"] == "file":
                     for i in range(level):
-                        print("\t", end="")
+                        print("    ", end="")
                     print(name)
                 elif repo_file_tree[i]["type"] == "dir":
                     for i in range(level-1):
-                        print("\t", end="")
+                        print("    ", end="")
                     print(name)
 
 def get_repo_file_content(repo_info, file_name, save=False, update=False):
@@ -140,6 +142,24 @@ def get_repo_file_content(repo_info, file_name, save=False, update=False):
 
     return content
 
+def clone_repo(repo_info, save=False, update=False):
+    clone_url = repo_info["clone_url"]
+    os.system("git clone {} {}".format(clone_url, os.path.join("..", repo_info["name"])))
+
+def remove_repo(repo_info, save=False, update=False):
+    for root, dirs, files in os.walk(os.path.join("..", repo_info["name"])):
+        for dir in dirs:
+            os.chmod(os.path.join(root, dir), stat.S_IRWXU)
+        for file in files:
+            os.chmod(os.path.join(root, file), stat.S_IRWXU)
+    shutil.rmtree(os.path.join("..", repo_info["name"]))
+
+def install_repo(repo_info, save=False, update=False):
+    os.system("cd {} && make compile LIBRARY_TYPE=static OS=Windows_NT".format(os.path.join("..", repo_info["name"])))
+
+def clean_repo(repo_info, save=False, update=False):
+    os.system("cd {} && make clean LIBRARY_TYPE=static OS=Windows_NT".format(os.path.join("..", repo_info["name"])))
+
 if __name__ == "__main__":
     username = "JeanLeBris"
 
@@ -154,7 +174,16 @@ if __name__ == "__main__":
     parser_1_3.add_argument("repo", action="store", type=str, help="name of the repository")
     parser_1_4 = parser_1.add_parser("files")
     parser_1_4.add_argument("repo", action="store", type=str, help="name of the repository")
+    parser_1_4 = parser_1.add_parser("file")
+    parser_1_4.add_argument("repo", action="store", type=str, help="name of the repository")
+    parser_1_4.add_argument("file", action="store", type=str, help="path of the file")
+    parser_1_4 = parser_1.add_parser("clone")
+    parser_1_4.add_argument("repo", action="store", type=str, help="name of the repository")
+    parser_1_4 = parser_1.add_parser("remove")
+    parser_1_4.add_argument("repo", action="store", type=str, help="name of the repository")
     parser_1_4 = parser_1.add_parser("install")
+    parser_1_4.add_argument("repo", action="store", type=str, help="name of the repository")
+    parser_1_4 = parser_1.add_parser("clean")
     parser_1_4.add_argument("repo", action="store", type=str, help="name of the repository")
     # parser_1.add_argument("request", action="store", type=str, help="type of request to do")
     args = parser.parse_args()
@@ -192,14 +221,45 @@ if __name__ == "__main__":
         repos_info = get_repos_info(user_info, save, update)
         repo_info = get_repo_info(repos_info, repo_name, save, update)
         repo_files = get_repo_file_tree(repo_info, "", save, update)
-
         # print(repo_files)
         print_repo_file_tree(repo_files, 0, save, update)
 
-    elif request == "install":
+    elif request == "file":
+        repo_name = args.repo
+        file_path = args.file
+        user_info = get_user_info(username, save, update)
+        repos_info = get_repos_info(user_info, save, update)
+        repo_info = get_repo_info(repos_info, repo_name, save, update)
+        get_repo_file_content(repo_info, file_path)
+
+    elif request == "clone":
         repo_name = args.repo
         user_info = get_user_info(username, save, update)
         repos_info = get_repos_info(user_info, save, update)
         repo_info = get_repo_info(repos_info, repo_name, save, update)
         # get_repo_readme_content(repo_info)
-        get_repo_file_content(repo_info, ".gitignore")
+        # get_repo_file_content(repo_info, ".gitignore")
+        clone_repo(repo_info, save, update)
+
+    elif request == "remove":
+        repo_name = args.repo
+        user_info = get_user_info(username, save, update)
+        repos_info = get_repos_info(user_info, save, update)
+        repo_info = get_repo_info(repos_info, repo_name, save, update)
+        # get_repo_readme_content(repo_info)
+        # get_repo_file_content(repo_info, ".gitignore")
+        remove_repo(repo_info, save, update)
+    
+    elif request == "install":
+        repo_name = args.repo
+        user_info = get_user_info(username, save, update)
+        repos_info = get_repos_info(user_info, save, update)
+        repo_info = get_repo_info(repos_info, repo_name, save, update)
+        install_repo(repo_info, save, update)
+    
+    elif request == "clean":
+        repo_name = args.repo
+        user_info = get_user_info(username, save, update)
+        repos_info = get_repos_info(user_info, save, update)
+        repo_info = get_repo_info(repos_info, repo_name, save, update)
+        clean_repo(repo_info, save, update)
