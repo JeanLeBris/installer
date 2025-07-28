@@ -6,12 +6,15 @@ import base64
 import shutil
 import stat
 
-with open(".access_key", "r") as f:
-    key = f.read()
+if os.path.isfile(".access_key"):
+    with open(".access_key", "r") as f:
+        key = f.read()
 
-headers = {"Accept": "application/vnd.github+json",
-           "Authorization": "token {}".format(key),
-           "X-GitHub-Api-Version": "2022-11-28"}
+    headers = {"Accept": "application/vnd.github+json",
+               "Authorization": "token {}".format(key),
+               "X-GitHub-Api-Version": "2022-11-28"}
+else:
+    headers = None
 
 def create_dir(path, clean=False):
     if not os.path.isdir(path):
