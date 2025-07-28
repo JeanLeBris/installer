@@ -158,10 +158,13 @@ def remove_repo(repo_info, save=False, update=False):
     shutil.rmtree(os.path.join("..", repo_info["name"]))
 
 def install_repo(repo_info, save=False, update=False):
-    os.system("cd {} && make compile LIBRARY_TYPE=static OS=Windows_NT".format(os.path.join("..", repo_info["name"])))
+    os.system("cd {} && make compile LIBRARY_TYPE=static OS=Windows".format(os.path.join("..", repo_info["name"])))
 
 def clean_repo(repo_info, save=False, update=False):
-    os.system("cd {} && make clean LIBRARY_TYPE=static OS=Windows_NT".format(os.path.join("..", repo_info["name"])))
+    os.system("cd {} && make clean LIBRARY_TYPE=static OS=Windows".format(os.path.join("..", repo_info["name"])))
+
+def update_repo(repo_info, save=False, update=False):
+    os.system("cd {} && git pull".format(os.path.join("..", repo_info["name"])))
 
 if __name__ == "__main__":
     username = "JeanLeBris"
@@ -187,6 +190,8 @@ if __name__ == "__main__":
     parser_1_4 = parser_1.add_parser("install")
     parser_1_4.add_argument("repo", action="store", type=str, help="name of the repository")
     parser_1_4 = parser_1.add_parser("clean")
+    parser_1_4.add_argument("repo", action="store", type=str, help="name of the repository")
+    parser_1_4 = parser_1.add_parser("update")
     parser_1_4.add_argument("repo", action="store", type=str, help="name of the repository")
     # parser_1.add_argument("request", action="store", type=str, help="type of request to do")
     args = parser.parse_args()
@@ -266,3 +271,10 @@ if __name__ == "__main__":
         repos_info = get_repos_info(user_info, save, update)
         repo_info = get_repo_info(repos_info, repo_name, save, update)
         clean_repo(repo_info, save, update)
+    
+    elif request == "update":
+        repo_name = args.repo
+        user_info = get_user_info(username, save, update)
+        repos_info = get_repos_info(user_info, save, update)
+        repo_info = get_repo_info(repos_info, repo_name, save, update)
+        update_repo(repo_info, save, update)
