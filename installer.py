@@ -5,6 +5,7 @@ import os
 import base64
 import shutil
 import stat
+import platform
 
 if os.path.isfile(".access_key"):
     with open(".access_key", "r") as f:
@@ -158,10 +159,10 @@ def remove_repo(repo_info, save=False, update=False):
     shutil.rmtree(os.path.join("..", repo_info["name"]))
 
 def install_repo(repo_info, save=False, update=False):
-    os.system("cd {} && make compile LIBRARY_TYPE=static OS=Windows".format(os.path.join("..", repo_info["name"])))
+    os.system("cd {} && make compile LIBRARY_TYPE=static OS={}".format(os.path.join("..", repo_info["name"]), platform.system()))
 
 def clean_repo(repo_info, save=False, update=False):
-    os.system("cd {} && make clean LIBRARY_TYPE=static OS=Windows".format(os.path.join("..", repo_info["name"])))
+    os.system("cd {} && make clean LIBRARY_TYPE=static OS={}".format(os.path.join("..", repo_info["name"]), platform.system()))
 
 def update_repo(repo_info, save=False, update=False):
     os.system("cd {} && git pull".format(os.path.join("..", repo_info["name"])))
